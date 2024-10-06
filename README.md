@@ -4,7 +4,7 @@ This crate provides 2 types:
 - `F8E4M3`: Sign + 4-bit exponent + 3-bit mantissa. More precise but less dynamic range.
 - `F8E5M2`: Sign + 5-bit exponent + 2-bit mantissa. Less precise but more dynamic range (same exponent as `f16`).
 
-Generally, this crate is modelled after the [`half`] crate, so it can be
+Generally, this crate is modelled after the `half` crate, so it can be
 used alongside and with minimal code changes.
 
 - This crate provides `no_std` support

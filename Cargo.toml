@@ -2,6 +2,12 @@
 name = "float8"
 version = "0.1.0"
 edition = "2021"
+description = "8-bit floating point types for Rust"
+homepage = "https://github.com/EricLBuehler/float8"
+repository = "https://github.com/EricLBuehler/float8"
+keywords = ["float8", "f8e4m3", "fp8e5m2", "no_std"]
+categories = ["science"]
+license = "MIT"
 
 [dependencies]
 half = "2.4.1"
