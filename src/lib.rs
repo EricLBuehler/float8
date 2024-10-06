@@ -85,7 +85,7 @@ use std::{
     cmp::Ordering,
     mem,
     num::FpCategory,
-    ops::{Add, Div, Mul, Neg, Rem, Sub},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign},
 };
 
 #[cfg(feature = "bytemuck")]
@@ -1475,6 +1475,16 @@ macro_rules! binary {
     };
 }
 
+macro_rules! assign_binary {
+    ($trait:ident, $fn_name:ident, $t:ident, $op:tt) => {
+        impl $trait for $t {
+            fn $fn_name(&mut self, rhs: Self) {
+                *self = Self::from_f32(self.to_f32() $op rhs.to_f32())
+            }
+        }
+    };
+}
+
 macro_rules! unary {
     ($trait:ident, $fn_name:ident, $t:ident, $op:tt) => {
         impl $trait for $t {
@@ -1492,6 +1502,11 @@ binary!(Sub, sub, F8E4M3, -);
 binary!(Mul, mul, F8E4M3, *);
 binary!(Div, div, F8E4M3, /);
 binary!(Rem, rem, F8E4M3, %);
+assign_binary!(AddAssign, add_assign, F8E4M3, +);
+assign_binary!(SubAssign, sub_assign, F8E4M3, -);
+assign_binary!(MulAssign, mul_assign, F8E4M3, *);
+assign_binary!(DivAssign, div_assign, F8E4M3, /);
+assign_binary!(RemAssign, rem_assign, F8E4M3, %);
 unary!(Neg, neg, F8E4M3, -);
 
 binary!(Add, add, F8E5M2, +);
@@ -1499,6 +1514,11 @@ binary!(Sub, sub, F8E5M2, -);
 binary!(Mul, mul, F8E5M2, *);
 binary!(Div, div, F8E5M2, /);
 binary!(Rem, rem, F8E5M2, %);
+assign_binary!(AddAssign, add_assign, F8E5M2, +);
+assign_binary!(SubAssign, sub_assign, F8E5M2, -);
+assign_binary!(MulAssign, mul_assign, F8E5M2, *);
+assign_binary!(DivAssign, div_assign, F8E5M2, /);
+assign_binary!(RemAssign, rem_assign, F8E5M2, %);
 unary!(Neg, neg, F8E5M2, -);
 
 macro_rules! from_t {
