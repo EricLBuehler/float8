@@ -77,7 +77,7 @@ const fn convert_to_fp8(x: f64, saturate: SaturationType, fp8_interpretation: Ki
         // Zero or underflow
         0
     } else if absx > DP_INF_BITS {
-        // Preseve NaNs
+        // Preserve NaNs
         match fp8_interpretation {
             Kind::E4M3 => 0x7F,
             Kind::E5M2 => 0x7E | mantissa,
@@ -178,7 +178,7 @@ impl F8E4M3 {
         Self(bits)
     }
 
-    /// Construct an 8-bit floating point value from the raw bits.
+    /// Return the raw bits.
     pub const fn to_bits(&self) -> u8 {
         self.0
     }
@@ -548,7 +548,7 @@ impl F8E5M2 {
         Self(bits)
     }
 
-    /// Construct an 8-bit floating point value from the raw bits.
+    /// Return the raw bits.
     pub const fn to_bits(&self) -> u8 {
         self.0
     }
@@ -1083,9 +1083,9 @@ constants!(F8E5M2);
 impl F8E4M3 {
     /// Number of mantissa digits
     pub const MANTISSA_DIGITS: u32 = 3;
-    /// Maxiumum possible value
+    /// Maximum possible value
     pub const MAX: Self = Self::from_bits(0x7E - 1);
-    /// Minumum possible value
+    /// Minimum possible value
     pub const MIN: Self = Self::from_bits(0xFE - 1);
     /// Positive infinity ∞
     pub const INFINITY: Self = Self::from_bits(0x7E);
@@ -1125,9 +1125,9 @@ impl F8E4M3 {
 impl F8E5M2 {
     /// Number of mantissa digits
     pub const MANTISSA_DIGITS: u32 = 2;
-    /// Maxiumum possible value
+    /// Maximum possible value
     pub const MAX: Self = Self::from_bits(0x7B - 1);
-    /// Minumum possible value
+    /// Minimum possible value
     pub const MIN: Self = Self::from_bits(0xFB - 1);
     /// Positive infinity ∞
     pub const INFINITY: Self = Self::from_bits(0x7B);
