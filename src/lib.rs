@@ -2,19 +2,98 @@
 //!
 //! This crate provides 2 types:
 //! - [`F8E4M3`]: Sign + 4-bit exponent + 3-bit mantissa. More precise but less dynamic range.
-//! - [`F8E5M2`]: Sign + 5-bit exponent + 2-bit mantissa. Less precise but more dynamic range (same as [`struct@f16`]).
+//! - [`F8E5M2`]: Sign + 5-bit exponent + 2-bit mantissa. Less precise but more dynamic range (same exponent as [`struct@f16`]).
 //!
-//! Generally, this crate aims to expose an API which is a drop-in replacement for the [`half`] crate, so it can be
+//! Generally, this crate is modelled after the [`half`] crate, so it can be
 //! used alongside and with minimal code changes.
 //!
+//! # Serialization
+//!
+//! When the `serde` feature is enabled, [`F8E4M3`] and [`F8E5M2`] will be serialized as a newtype of
+//! [`u16`] by default. In binary formats this is ideal, as it will generally use just two bytes for
+//! storage. For string formats like JSON, however, this isn't as useful, and due to design
+//! limitations of serde, it's not possible for the default `Serialize` implementation to support
+//! different serialization for different formats.
+//!
+//! It is up to the container type of the floats to control how it is serialized. This can
+//! easily be controlled when using the derive macros using `#[serde(serialize_with="")]`
+//! attributes. For both [`F8E4M3`] and [`F8E5M2`], a `serialize_as_f32` and `serialize_as_string` are
+//! provided for use with this attribute.
+//!
+//! Deserialization of both float types supports deserializing from the default serialization,
+//! strings, and `f32`/`f64` values, so no additional work is required.
+//!
+//! # Cargo Features
+//!
+//! This crate supports a number of optional cargo features. None of these features are enabled by
+//! default, even `std`.
+//!
+//! - **`std`** — Enable features that depend on the Rust [`std`] library.
+//!
+//! - **`serde`** — Adds support for the [`serde`] crate by implementing [`Serialize`] and
+//!   [`Deserialize`] traits for both [`F8E4M3`] and [`F8E5M2`].
+//!
+//! - **`num-traits`** — Adds support for the [`num-traits`] crate by implementing [`ToPrimitive`],
+//!   [`FromPrimitive`], [`AsPrimitive`], [`Num`], [`Float`], [`FloatCore`], and [`Bounded`] traits
+//!   for both [`F8E4M3`] and [`F8E5M2`].
+//!
+//! - **`bytemuck`** — Adds support for the [`bytemuck`] crate by implementing [`Zeroable`] and
+//!   [`Pod`] traits for both [`F8E4M3`] and [`F8E5M2`].
+//!
+//! - **`zerocopy`** — Adds support for the [`zerocopy`] crate by implementing [`AsBytes`] and
+//!   [`FromBytes`] traits for both [`F8E4M3`] and [`F8E5M2`].
+//!
+//! - **`rand_distr`** — Adds support for the [`rand_distr`] crate by implementing [`Distribution`]
+//!   and other traits for both [`F8E4M3`] and [`F8E5M2`].
+//!
+//! - **`rkyv`** -- Enable zero-copy deserializtion with [`rkyv`] crate.
+//!
+//! [`alloc`]: https://doc.rust-lang.org/alloc/
+//! [`std`]: https://doc.rust-lang.org/std/
+//! [`binary16`]: https://en.wikipedia.org/wiki/Half-precision_floating-point_format
+//! [`bfloat16`]: https://en.wikipedia.org/wiki/Bfloat16_floating-point_format
+//! [`serde`]: https://crates.io/crates/serde
+//! [`bytemuck`]: https://crates.io/crates/bytemuck
+//! [`num-traits`]: https://crates.io/crates/num-traits
+//! [`zerocopy`]: https://crates.io/crates/zerocopy
+//! [`rand_distr`]: https://crates.io/crates/rand_distr
+//! [`rkyv`]: (https://crates.io/crates/rkyv)
+//! [`FromBytes`]: https://docs.rs/zerocopy/latest/zerocopy/trait.FromBytes.html
+//! [`Distribution`]: https://docs.rs/rand/latest/rand/distributions/trait.Distribution.html
+//! [`AsBytes`]: https://docs.rs/zerocopy/0.6.6/zerocopy/trait.AsBytes.html
+//! [`Pod`]: https://docs.rs/bytemuck/latest/bytemuck/trait.Pod.html
+//! [`Zeroable`]: https://docs.rs/bytemuck/latest/bytemuck/trait.Zeroable.html
+//! [`Bounded`]: https://docs.rs/num-traits/latest/num_traits/bounds/trait.Bounded.html
+//! [`FloatCore`]: https://docs.rs/num-traits/latest/num_traits/float/trait.FloatCore.html
+//! [`Float`]: https://docs.rs/num-traits/latest/num_traits/float/trait.Float.html
+//! [`Num`]: https://docs.rs/num-traits/latest/num_traits/trait.Num.html
+//! [`AsPrimitive`]: https://docs.rs/num-traits/latest/num_traits/cast/trait.AsPrimitive.html
+//! [`ToPrimitive`]: https://docs.rs/num-traits/latest/num_traits/cast/trait.ToPrimitive.html
+//! [`FromPrimitive`]: https://docs.rs/num-traits/latest/num_traits/cast/trait.FromPrimitive.html
+//! [`Deserialize`]: https://docs.rs/serde/latest/serde/trait.Deserialize.html
+//! [`Serialize`]: https://docs.rs/serde/latest/serde/trait.Serialize.html
+//!
+
+#[cfg(feature = "num-traits")]
+mod num_traits;
+#[cfg(feature = "rand_distr")]
+mod rand_distr;
 
 use core::f64;
 use half::f16;
 use std::{
     cmp::Ordering,
     mem,
+    num::FpCategory,
     ops::{Add, Div, Mul, Neg, Rem, Sub},
 };
+
+#[cfg(feature = "bytemuck")]
+use bytemuck::{Pod, Zeroable};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+#[cfg(feature = "zerocopy")]
+use zerocopy::{AsBytes, FromBytes};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Kind {
@@ -165,7 +244,15 @@ const fn convert_fp8_to_fp16(x: u8, fp8_interpretation: Kind) -> u16 {
     ur
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
+#[cfg_attr(feature = "rkyv", archive(resolver = "F8E4M3Resolver"))]
+#[cfg_attr(feature = "bytemuck", derive(Zeroable, Pod))]
+#[cfg_attr(feature = "zerocopy", derive(AsBytes, FromBytes))]
 #[repr(transparent)]
 /// Eight bit floating point type with 4-bit exponent and 3-bit mantissa.
 pub struct F8E4M3(u8);
@@ -533,9 +620,100 @@ impl F8E4M3 {
             Self::ONE
         }
     }
+
+    /// Returns the floating point category of the number.
+    ///
+    /// If only one property is going to be tested, it is generally faster to use the specific
+    /// predicate instead.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::num::FpCategory;
+    /// # use float8::*;
+    ///
+    /// let num = F8E4M3::from_f32(12.4_f32);
+    /// let inf = F8E4M3::INFINITY;
+    ///
+    /// assert_eq!(num.classify(), FpCategory::Normal);
+    /// assert_eq!(inf.classify(), FpCategory::Infinite);
+    /// ```
+    pub const fn classify(&self) -> FpCategory {
+        if self.is_infinite() {
+            FpCategory::Infinite
+        } else if !self.is_normal() {
+            FpCategory::Subnormal
+        } else if self.is_nan() {
+            FpCategory::Nan
+        } else if self.0 & 0x7Fu8 == 0 {
+            FpCategory::Zero
+        } else {
+            FpCategory::Normal
+        }
+    }
 }
 
-#[derive(Copy, Clone)]
+#[cfg(feature = "serde")]
+struct VisitorF8E4M3;
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for F8E4M3 {
+    fn deserialize<D>(deserializer: D) -> Result<F8E4M3, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        deserializer.deserialize_newtype_struct("f8e4m3", VisitorF8E4M3)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::de::Visitor<'de> for VisitorF8E4M3 {
+    type Value = F8E4M3;
+
+    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(formatter, "tuple struct f8e4m3")
+    }
+
+    fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(F8E4M3(<u8 as Deserialize>::deserialize(deserializer)?))
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        v.parse().map_err(|_| {
+            serde::de::Error::invalid_value(serde::de::Unexpected::Str(v), &"a float string")
+        })
+    }
+
+    fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Ok(F8E4M3::from_f32(v))
+    }
+
+    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Ok(F8E4M3::from_f64(v))
+    }
+}
+
+#[derive(Clone, Copy, Default)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize)
+)]
+#[cfg_attr(feature = "rkyv", archive(resolver = "F8E5M2Resolver"))]
+#[cfg_attr(feature = "bytemuck", derive(Zeroable, Pod))]
+#[cfg_attr(feature = "zerocopy", derive(AsBytes, FromBytes))]
 #[repr(transparent)]
 /// Eight bit floating point type with 5-bit exponent and 2-bit mantissa.
 pub struct F8E5M2(u8);
@@ -903,6 +1081,89 @@ impl F8E5M2 {
             Self::ONE
         }
     }
+
+    /// Returns the floating point category of the number.
+    ///
+    /// If only one property is going to be tested, it is generally faster to use the specific
+    /// predicate instead.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::num::FpCategory;
+    /// # use float8::*;
+    ///
+    /// let num = F8E5M2::from_f32(12.4_f32);
+    /// let inf = F8E5M2::INFINITY;
+    ///
+    /// assert_eq!(num.classify(), FpCategory::Normal);
+    /// assert_eq!(inf.classify(), FpCategory::Infinite);
+    /// ```
+    pub const fn classify(&self) -> FpCategory {
+        if self.is_infinite() {
+            FpCategory::Infinite
+        } else if !self.is_normal() {
+            FpCategory::Subnormal
+        } else if self.is_nan() {
+            FpCategory::Nan
+        } else if self.0 & 0x7Fu8 == 0 {
+            FpCategory::Zero
+        } else {
+            FpCategory::Normal
+        }
+    }
+}
+
+#[cfg(feature = "serde")]
+struct VisitorF8E5M2;
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for F8E5M2 {
+    fn deserialize<D>(deserializer: D) -> Result<F8E5M2, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        deserializer.deserialize_newtype_struct("f8e5m2", VisitorF8E5M2)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::de::Visitor<'de> for VisitorF8E5M2 {
+    type Value = F8E5M2;
+
+    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(formatter, "tuple struct f8e5m2")
+    }
+
+    fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(F8E5M2(<u8 as Deserialize>::deserialize(deserializer)?))
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        v.parse().map_err(|_| {
+            serde::de::Error::invalid_value(serde::de::Unexpected::Str(v), &"a float string")
+        })
+    }
+
+    fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Ok(F8E5M2::from_f32(v))
+    }
+
+    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Ok(F8E5M2::from_f64(v))
+    }
 }
 
 macro_rules! comparison {
@@ -1163,7 +1424,7 @@ impl F8E5M2 {
     pub const DIGITS: u32 = 0;
 }
 
-macro_rules! display {
+macro_rules! io {
     ($t:ident) => {
         impl std::fmt::Display for $t {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -1175,11 +1436,32 @@ macro_rules! display {
                 std::fmt::Debug::fmt(&self.to_f32(), f)
             }
         }
+        impl std::str::FromStr for $t {
+            type Err = std::num::ParseFloatError;
+            fn from_str(src: &str) -> Result<$t, std::num::ParseFloatError> {
+                f32::from_str(src).map($t::from_f32)
+            }
+        }
+        impl From<f16> for $t {
+            fn from(x: f16) -> $t {
+                Self::from_f32(x.to_f32())
+            }
+        }
+        impl From<f32> for $t {
+            fn from(x: f32) -> $t {
+                Self::from_f32(x)
+            }
+        }
+        impl From<f64> for $t {
+            fn from(x: f64) -> $t {
+                Self::from_f64(x)
+            }
+        }
     };
 }
 
-display!(F8E4M3);
-display!(F8E5M2);
+io!(F8E4M3);
+io!(F8E5M2);
 
 macro_rules! binary {
     ($trait:ident, $fn_name:ident, $t:ident, $op:tt) => {
