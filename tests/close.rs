@@ -12,19 +12,20 @@ fn test_all_close() {
 
 #[test]
 fn test_cmp() {
-    let mut v: Vec<F8E4M3> = vec![];
-    v.push(F8E4M3::ONE);
-    v.push(F8E4M3::INFINITY);
-    v.push(F8E4M3::NEG_INFINITY);
-    v.push(F8E4M3::NAN);
-    v.push(F8E4M3::MAX_SUBNORMAL);
-    v.push(-F8E4M3::MAX_SUBNORMAL);
-    v.push(F8E4M3::ZERO);
-    v.push(F8E4M3::NEG_ZERO);
-    v.push(F8E4M3::NEG_ONE);
-    v.push(F8E4M3::MIN_POSITIVE);
+    let mut v: Vec<F8E4M3> = vec![
+        F8E4M3::ONE,
+        F8E4M3::INFINITY,
+        F8E4M3::NEG_INFINITY,
+        F8E4M3::NAN,
+        F8E4M3::MAX_SUBNORMAL,
+        -F8E4M3::MAX_SUBNORMAL,
+        F8E4M3::ZERO,
+        F8E4M3::NEG_ZERO,
+        F8E4M3::NEG_ONE,
+        F8E4M3::MIN_POSITIVE,
+    ];
 
-    v.sort_by(|a, b| a.total_cmp(&b));
+    v.sort_by(|a, b| a.total_cmp(b));
 
     assert!(v
         .into_iter()

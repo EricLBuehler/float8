@@ -172,7 +172,7 @@ const fn convert_to_fp8(x: f64, saturate: SaturationType, fp8_interpretation: Ki
         }
     } else if absx >= fp8_minnorm {
         // Round, normal range
-        let mut res = ((exp << (fp8_significand_bits - 1)) | mantissa) as u8;
+        let mut res = (exp << (fp8_significand_bits - 1)) | mantissa;
 
         // Round off bits and round-to-nearest-even adjustment
         let round = xbits & ((fp8_dp_half_ulp << 1) - 1);

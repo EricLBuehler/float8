@@ -49,8 +49,8 @@ mod test {
         let digits = ((F8E5M2::MANTISSA_DIGITS as f32 - 1.0) * 2f32.log10()).floor() as u32;
         assert_eq!(F8E5M2::DIGITS, digits);
         // sanity check to show test is good
-        let digits32 = ((core::f32::MANTISSA_DIGITS as f32 - 1.0) * 2f32.log10()).floor() as u32;
-        assert_eq!(core::f32::DIGITS, digits32);
+        let digits32 = ((f32::MANTISSA_DIGITS as f32 - 1.0) * 2f32.log10()).floor() as u32;
+        assert_eq!(f32::DIGITS, digits32);
 
         // EPSILON
         let one = F8E5M2::from_f32(1.0);
@@ -60,7 +60,7 @@ mod test {
         // sanity check to show test is good
         let one_plus_epsilon32 = f32::from_bits(1.0f32.to_bits() + 1);
         let epsilon32 = one_plus_epsilon32 - 1f32;
-        assert_eq!(core::f32::EPSILON, epsilon32);
+        assert_eq!(f32::EPSILON, epsilon32);
 
         // MAX, MIN and MIN_POSITIVE
         let max = F8E5M2::from_bits(F8E5M2::INFINITY.to_bits() - 1);
@@ -70,12 +70,12 @@ mod test {
         assert_eq!(F8E5M2::MIN, min);
         assert_eq!(F8E5M2::MIN_POSITIVE, min_pos);
         // sanity check to show test is good
-        let max32 = f32::from_bits(core::f32::INFINITY.to_bits() - 1);
-        let min32 = f32::from_bits(core::f32::NEG_INFINITY.to_bits() - 1);
-        let min_pos32 = 2f32.powi(core::f32::MIN_EXP - 1);
-        assert_eq!(core::f32::MAX, max32);
-        assert_eq!(core::f32::MIN, min32);
-        assert_eq!(core::f32::MIN_POSITIVE, min_pos32);
+        let max32 = f32::from_bits(f32::INFINITY.to_bits() - 1);
+        let min32 = f32::from_bits(f32::NEG_INFINITY.to_bits() - 1);
+        let min_pos32 = 2f32.powi(f32::MIN_EXP - 1);
+        assert_eq!(f32::MAX, max32);
+        assert_eq!(f32::MIN, min32);
+        assert_eq!(f32::MIN_POSITIVE, min_pos32);
 
         // MIN_10_EXP and MAX_10_EXP
         let ten_to_min = 10f32.powi(F8E5M2::MIN_10_EXP);
@@ -85,12 +85,12 @@ mod test {
         assert!(ten_to_max < F8E5M2::MAX.to_f32());
         assert!(ten_to_max * 10.0 > F8E5M2::MAX.to_f32());
         // sanity check to show test is good
-        let ten_to_min32 = 10f64.powi(core::f32::MIN_10_EXP);
-        assert!(ten_to_min32 / 10.0 < f64::from(core::f32::MIN_POSITIVE));
-        assert!(ten_to_min32 > f64::from(core::f32::MIN_POSITIVE));
-        let ten_to_max32 = 10f64.powi(core::f32::MAX_10_EXP);
-        assert!(ten_to_max32 < f64::from(core::f32::MAX));
-        assert!(ten_to_max32 * 10.0 > f64::from(core::f32::MAX));
+        let ten_to_min32 = 10f64.powi(f32::MIN_10_EXP);
+        assert!(ten_to_min32 / 10.0 < f64::from(f32::MIN_POSITIVE));
+        assert!(ten_to_min32 > f64::from(f32::MIN_POSITIVE));
+        let ten_to_max32 = 10f64.powi(f32::MAX_10_EXP);
+        assert!(ten_to_max32 < f64::from(f32::MAX));
+        assert!(ten_to_max32 * 10.0 > f64::from(f32::MAX));
     }
 
     #[test]
@@ -99,9 +99,9 @@ mod test {
         let zero = F8E5M2::from_f32(0.0);
         let neg_zero = F8E5M2::from_f32(-0.0);
         let neg_one = F8E5M2::from_f32(-1.0);
-        let inf = F8E5M2::from_f32(core::f32::INFINITY);
-        let neg_inf = F8E5M2::from_f32(core::f32::NEG_INFINITY);
-        let nan = F8E5M2::from_f32(core::f32::NAN);
+        let inf = F8E5M2::from_f32(f32::INFINITY);
+        let neg_inf = F8E5M2::from_f32(f32::NEG_INFINITY);
+        let nan = F8E5M2::from_f32(f32::NAN);
 
         assert_eq!(F8E5M2::ONE, one);
         assert_eq!(F8E5M2::ZERO, zero);
@@ -119,26 +119,26 @@ mod test {
         assert!(nan.is_nan());
         assert!(F8E5M2::NAN.is_nan());
 
-        let e = F8E5M2::from_f32(core::f32::consts::E);
-        let pi = F8E5M2::from_f32(core::f32::consts::PI);
-        let frac_1_pi = F8E5M2::from_f32(core::f32::consts::FRAC_1_PI);
-        let frac_1_sqrt_2 = F8E5M2::from_f32(core::f32::consts::FRAC_1_SQRT_2);
-        let frac_2_pi = F8E5M2::from_f32(core::f32::consts::FRAC_2_PI);
-        let frac_2_sqrt_pi = F8E5M2::from_f32(core::f32::consts::FRAC_2_SQRT_PI);
-        let frac_pi_2 = F8E5M2::from_f32(core::f32::consts::FRAC_PI_2);
-        let frac_pi_3 = F8E5M2::from_f32(core::f32::consts::FRAC_PI_3);
-        let frac_pi_4 = F8E5M2::from_f32(core::f32::consts::FRAC_PI_4);
-        let frac_pi_6 = F8E5M2::from_f32(core::f32::consts::FRAC_PI_6);
-        let frac_pi_8 = F8E5M2::from_f32(core::f32::consts::FRAC_PI_8);
-        let ln_10 = F8E5M2::from_f32(core::f32::consts::LN_10);
-        let ln_2 = F8E5M2::from_f32(core::f32::consts::LN_2);
-        let log10_e = F8E5M2::from_f32(core::f32::consts::LOG10_E);
-        // core::f32::consts::LOG10_2 requires rustc 1.43.0
+        let e = F8E5M2::from_f32(std::f32::consts::E);
+        let pi = F8E5M2::from_f32(std::f32::consts::PI);
+        let frac_1_pi = F8E5M2::from_f32(std::f32::consts::FRAC_1_PI);
+        let frac_1_sqrt_2 = F8E5M2::from_f32(std::f32::consts::FRAC_1_SQRT_2);
+        let frac_2_pi = F8E5M2::from_f32(std::f32::consts::FRAC_2_PI);
+        let frac_2_sqrt_pi = F8E5M2::from_f32(std::f32::consts::FRAC_2_SQRT_PI);
+        let frac_pi_2 = F8E5M2::from_f32(std::f32::consts::FRAC_PI_2);
+        let frac_pi_3 = F8E5M2::from_f32(std::f32::consts::FRAC_PI_3);
+        let frac_pi_4 = F8E5M2::from_f32(std::f32::consts::FRAC_PI_4);
+        let frac_pi_6 = F8E5M2::from_f32(std::f32::consts::FRAC_PI_6);
+        let frac_pi_8 = F8E5M2::from_f32(std::f32::consts::FRAC_PI_8);
+        let ln_10 = F8E5M2::from_f32(std::f32::consts::LN_10);
+        let ln_2 = F8E5M2::from_f32(std::f32::consts::LN_2);
+        let log10_e = F8E5M2::from_f32(std::f32::consts::LOG10_E);
+        // std::f32::consts::LOG10_2 requires rustc 1.43.0
         let log10_2 = F8E5M2::from_f32(2f32.log10());
-        let log2_e = F8E5M2::from_f32(core::f32::consts::LOG2_E);
-        // core::f32::consts::LOG2_10 requires rustc 1.43.0
+        let log2_e = F8E5M2::from_f32(std::f32::consts::LOG2_E);
+        // std::f32::consts::LOG2_10 requires rustc 1.43.0
         let log2_10 = F8E5M2::from_f32(10f32.log2());
-        let sqrt_2 = F8E5M2::from_f32(core::f32::consts::SQRT_2);
+        let sqrt_2 = F8E5M2::from_f32(std::f32::consts::SQRT_2);
 
         assert_eq!(F8E5M2::E, e);
         assert_eq!(F8E5M2::PI, pi);
@@ -165,9 +165,9 @@ mod test {
         let one = F8E5M2::from_f64(1.0);
         let zero = F8E5M2::from_f64(0.0);
         let neg_zero = F8E5M2::from_f64(-0.0);
-        let inf = F8E5M2::from_f64(core::f64::INFINITY);
-        let neg_inf = F8E5M2::from_f64(core::f64::NEG_INFINITY);
-        let nan = F8E5M2::from_f64(core::f64::NAN);
+        let inf = F8E5M2::from_f64(f64::INFINITY);
+        let neg_inf = F8E5M2::from_f64(f64::NEG_INFINITY);
+        let nan = F8E5M2::from_f64(f64::NAN);
 
         assert_eq!(F8E5M2::ONE, one);
         assert_eq!(F8E5M2::ZERO, zero);
@@ -179,26 +179,26 @@ mod test {
         assert!(nan.is_nan());
         assert!(F8E5M2::NAN.is_nan());
 
-        let e = F8E5M2::from_f64(core::f64::consts::E);
-        let pi = F8E5M2::from_f64(core::f64::consts::PI);
-        let frac_1_pi = F8E5M2::from_f64(core::f64::consts::FRAC_1_PI);
-        let frac_1_sqrt_2 = F8E5M2::from_f64(core::f64::consts::FRAC_1_SQRT_2);
-        let frac_2_pi = F8E5M2::from_f64(core::f64::consts::FRAC_2_PI);
-        let frac_2_sqrt_pi = F8E5M2::from_f64(core::f64::consts::FRAC_2_SQRT_PI);
-        let frac_pi_2 = F8E5M2::from_f64(core::f64::consts::FRAC_PI_2);
-        let frac_pi_3 = F8E5M2::from_f64(core::f64::consts::FRAC_PI_3);
-        let frac_pi_4 = F8E5M2::from_f64(core::f64::consts::FRAC_PI_4);
-        let frac_pi_6 = F8E5M2::from_f64(core::f64::consts::FRAC_PI_6);
-        let frac_pi_8 = F8E5M2::from_f64(core::f64::consts::FRAC_PI_8);
-        let ln_10 = F8E5M2::from_f64(core::f64::consts::LN_10);
-        let ln_2 = F8E5M2::from_f64(core::f64::consts::LN_2);
-        let log10_e = F8E5M2::from_f64(core::f64::consts::LOG10_E);
-        // core::f64::consts::LOG10_2 requires rustc 1.43.0
+        let e = F8E5M2::from_f64(std::f64::consts::E);
+        let pi = F8E5M2::from_f64(std::f64::consts::PI);
+        let frac_1_pi = F8E5M2::from_f64(std::f64::consts::FRAC_1_PI);
+        let frac_1_sqrt_2 = F8E5M2::from_f64(std::f64::consts::FRAC_1_SQRT_2);
+        let frac_2_pi = F8E5M2::from_f64(std::f64::consts::FRAC_2_PI);
+        let frac_2_sqrt_pi = F8E5M2::from_f64(std::f64::consts::FRAC_2_SQRT_PI);
+        let frac_pi_2 = F8E5M2::from_f64(std::f64::consts::FRAC_PI_2);
+        let frac_pi_3 = F8E5M2::from_f64(std::f64::consts::FRAC_PI_3);
+        let frac_pi_4 = F8E5M2::from_f64(std::f64::consts::FRAC_PI_4);
+        let frac_pi_6 = F8E5M2::from_f64(std::f64::consts::FRAC_PI_6);
+        let frac_pi_8 = F8E5M2::from_f64(std::f64::consts::FRAC_PI_8);
+        let ln_10 = F8E5M2::from_f64(std::f64::consts::LN_10);
+        let ln_2 = F8E5M2::from_f64(std::f64::consts::LN_2);
+        let log10_e = F8E5M2::from_f64(std::f64::consts::LOG10_E);
+        // std::f64::consts::LOG10_2 requires rustc 1.43.0
         let log10_2 = F8E5M2::from_f64(2f64.log10());
-        let log2_e = F8E5M2::from_f64(core::f64::consts::LOG2_E);
-        // core::f64::consts::LOG2_10 requires rustc 1.43.0
+        let log2_e = F8E5M2::from_f64(std::f64::consts::LOG2_E);
+        // std::f64::consts::LOG2_10 requires rustc 1.43.0
         let log2_10 = F8E5M2::from_f64(10f64.log2());
-        let sqrt_2 = F8E5M2::from_f64(core::f64::consts::SQRT_2);
+        let sqrt_2 = F8E5M2::from_f64(std::f64::consts::SQRT_2);
 
         assert_eq!(F8E5M2::E, e);
         assert_eq!(F8E5M2::PI, pi);
