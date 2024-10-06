@@ -153,7 +153,7 @@ const fn convert_fp8_to_fp16(x: u8, fp8_interpretation: Kind) -> u16 {
     ur
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 /// Eight bit floating point type with 4-bit exponent and 3-bit mantissa.
 pub struct F8E4M3(u8);
@@ -235,7 +235,7 @@ impl F8E4M3 {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 /// Eight bit floating point type with 5-bit exponent and 2-bit mantissa.
 pub struct F8E5M2(u8);
@@ -384,6 +384,88 @@ macro_rules! constants {
 
 constants!(F8E4M3);
 constants!(F8E5M2);
+
+#[allow(clippy::unusual_byte_groupings)]
+impl F8E4M3 {
+    /// Number of mantissa digits
+    pub const MANTISSA_DIGITS: u32 = 3;
+    /// Maxiumum possible value
+    pub const MAX: Self = Self::from_bits(0b0_1110_111);
+    /// Minumum possible value
+    pub const MIN: Self = Self::from_bits(0b1_1110_111);
+    /// Positive infinity ∞
+    pub const INFINITY: Self = Self::from_bits(0x7E);
+    /// Negative infinity -∞
+    pub const NEG_INFINITY: Self = Self::from_bits(0xFE);
+    /// Smallest possible normal value
+    pub const MIN_POSITIVE: Self = Self::from_bits(0b0_0001_000);
+    /// Smallest possible subnormal value
+    pub const MIN_POSITIVE_SUBNORMAL: Self = Self::from_bits(0b0_0000_001);
+    /// Smallest possible subnormal value
+    pub const MAX_SUBNORMAL: Self = Self::from_bits(0b0_0000_111);
+    /// This is the difference between 1.0 and the next largest representable number.
+    pub const EPSILON: Self = Self::from_bits(0b0_0100_000);
+    /// NaN value
+    pub const NAN: Self = Self::from_bits(0x7F);
+    /// 1
+    pub const ONE: Self = Self::from_bits(0b0_111_000);
+    /// 0
+    pub const ZERO: Self = Self::from_bits(0b0_0000_000);
+    /// -1
+    pub const NEG_ONE: Self = Self::from_bits(0b1_111_000);
+    /// -0
+    pub const NEG_ZERO: Self = Self::from_bits(0b1_0000_000);
+}
+
+#[allow(clippy::unusual_byte_groupings)]
+impl F8E5M2 {
+    /// Number of mantissa digits
+    pub const MANTISSA_DIGITS: u32 = 2;
+    /// Maxiumum possible value
+    pub const MAX: Self = Self::from_bits(0b0_11110_11);
+    /// Minumum possible value
+    pub const MIN: Self = Self::from_bits(0b1_11110_11);
+    /// Positive infinity ∞
+    pub const INFINITY: Self = Self::from_bits(0x7B);
+    /// Negative infinity -∞
+    pub const NEG_INFINITY: Self = Self::from_bits(0xFB);
+    /// Smallest possible normal value
+    pub const MIN_POSITIVE: Self = Self::from_bits(0b0_00001_00);
+    /// Smallest possible subnormal value
+    pub const MIN_POSITIVE_SUBNORMAL: Self = Self::from_bits(0b0_00000_01);
+    /// Smallest possible subnormal value
+    pub const MAX_SUBNORMAL: Self = Self::from_bits(0b0_00000_11);
+    /// This is the difference between 1.0 and the next largest representable number.
+    pub const EPSILON: Self = Self::from_bits(0b0_01111_00);
+    /// NaN value
+    pub const NAN: Self = Self::from_bits(0x7F);
+    /// 1
+    pub const ONE: Self = Self::from_bits(0b0_01111_00);
+    /// 0
+    pub const ZERO: Self = Self::from_bits(0b0_00000_00);
+    /// -1
+    pub const NEG_ONE: Self = Self::from_bits(0b1_01111_00);
+    /// -0
+    pub const NEG_ZERO: Self = Self::from_bits(0b1_00000_00);
+}
+
+macro_rules! display {
+    ($t:ident) => {
+        impl std::fmt::Display for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.to_f32())
+            }
+        }
+        impl std::fmt::Debug for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.to_f32())
+            }
+        }
+    };
+}
+
+display!(F8E4M3);
+display!(F8E5M2);
 
 macro_rules! binary {
     ($trait:ident, $fn_name:ident, $t:ident, $op:tt) => {
