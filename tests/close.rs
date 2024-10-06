@@ -1,10 +1,10 @@
-use float8::f8;
+use float8::F8E4M3;
 
 #[test]
 fn test_all_close() {
     for n in 0..100 {
         let inp = (n as f64) * 0.1;
-        let num = f8::from_f64(inp);
+        let num = F8E4M3::from_f64(inp);
         // println!("out = {}, inp = {}", num.to_f16(), inp);
         println!("diff = {:.3}, inp = {inp}", num.to_f16().to_f64() - inp);
     }
@@ -12,17 +12,17 @@ fn test_all_close() {
 
 #[test]
 fn test_cmp() {
-    let mut v: Vec<f8> = vec![];
-    v.push(f8::ONE);
-    v.push(f8::INFINITY);
-    v.push(f8::NEG_INFINITY);
-    v.push(f8::NAN);
-    v.push(f8::MAX_SUBNORMAL);
-    v.push(-f8::MAX_SUBNORMAL);
-    v.push(f8::ZERO);
-    v.push(f8::NEG_ZERO);
-    v.push(f8::NEG_ONE);
-    v.push(f8::MIN_POSITIVE);
+    let mut v: Vec<F8E4M3> = vec![];
+    v.push(F8E4M3::ONE);
+    v.push(F8E4M3::INFINITY);
+    v.push(F8E4M3::NEG_INFINITY);
+    v.push(F8E4M3::NAN);
+    v.push(F8E4M3::MAX_SUBNORMAL);
+    v.push(-F8E4M3::MAX_SUBNORMAL);
+    v.push(F8E4M3::ZERO);
+    v.push(F8E4M3::NEG_ZERO);
+    v.push(F8E4M3::NEG_ONE);
+    v.push(F8E4M3::MIN_POSITIVE);
 
     v.sort_by(|a, b| a.total_cmp(&b));
 
@@ -30,16 +30,16 @@ fn test_cmp() {
         .into_iter()
         .zip(
             [
-                f8::NEG_INFINITY,
-                f8::NEG_ONE,
-                -f8::MAX_SUBNORMAL,
-                f8::NEG_ZERO,
-                f8::ZERO,
-                f8::MAX_SUBNORMAL,
-                f8::MIN_POSITIVE,
-                f8::ONE,
-                f8::INFINITY,
-                f8::NAN
+                F8E4M3::NEG_INFINITY,
+                F8E4M3::NEG_ONE,
+                -F8E4M3::MAX_SUBNORMAL,
+                F8E4M3::NEG_ZERO,
+                F8E4M3::ZERO,
+                F8E4M3::MAX_SUBNORMAL,
+                F8E4M3::MIN_POSITIVE,
+                F8E4M3::ONE,
+                F8E4M3::INFINITY,
+                F8E4M3::NAN
             ]
             .iter()
         )

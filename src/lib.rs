@@ -1,3 +1,13 @@
+//! Eight bit floating point types in Rust.
+//!
+//! This crate provides 2 types:
+//! - [`F8E4M3`]: Sign + 4-bit exponent + 3-bit mantissa. More precise but less dynamic range.
+//! - [`F8E5M2`]: Sign + 5-bit exponent + 2-bit mantissa. Less precise but more dynamic range (same as [`struct@f16`]).
+//!
+//! Generally, this crate aims to expose an API which is a drop-in replacement for the [`half`] crate, so it can be
+//! used alongside and with minimal code changes.
+//!
+
 use core::f64;
 use half::f16;
 use std::{
@@ -7,14 +17,15 @@ use std::{
 };
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum Kind {
+enum Kind {
     E4M3,
     E5M2,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Copy, PartialEq, Default)]
 /// Saturation type. If `NoSat`, allow NaN and inf.
-pub enum SaturationType {
+enum SaturationType {
     NoSat,
     #[default]
     SatFinite,
@@ -76,8 +87,8 @@ const fn convert_to_fp8(x: f64, saturate: SaturationType, fp8_interpretation: Ki
         match saturate {
             SaturationType::SatFinite => fp8_maxnorm,
             SaturationType::NoSat => match fp8_interpretation {
-                Kind::E4M3 => 0x7F,
-                Kind::E5M2 => 0x7C,
+                Kind::E4M3 => 0x7F, // NaN
+                Kind::E5M2 => 0x7C, // Inf in E5M2
             },
         }
     } else if absx >= fp8_minnorm {
@@ -162,17 +173,17 @@ pub struct F8E4M3(u8);
 impl F8E4M3 {
     const INTERPRETATION: Kind = Kind::E4M3;
 
-    /// Construct a 8-bit floating point value from the raw bits.
+    /// Construct an 8-bit floating point value from the raw bits.
     pub const fn from_bits(bits: u8) -> Self {
         Self(bits)
     }
 
-    /// Construct a 8-bit floating point value from the raw bits.
+    /// Construct an 8-bit floating point value from the raw bits.
     pub const fn to_bits(&self) -> u8 {
         self.0
     }
 
-    /// Convert a [`f64`] type into [`F8E4M3`].
+    /// Convert a [`prim@f64`] type into [`F8E4M3`].
     ///
     /// This operation is lossy.
     ///
@@ -202,7 +213,7 @@ impl F8E4M3 {
         Self::from_f64(x as f64)
     }
 
-    /// Convert this [`F8E4M3`] type into a [`f16`] type.
+    /// Convert this [`F8E4M3`] type into a [`struct@f16`] type.
     ///
     /// This operation may be lossy.
     ///
@@ -224,7 +235,7 @@ impl F8E4M3 {
         self.to_f16().to_f32_const()
     }
 
-    /// Convert this [`F8E4M3`] type into a [`f64`] type.
+    /// Convert this [`F8E4M3`] type into a [`prim@f64`] type.
     ///
     /// This operation may be lossy.
     ///
@@ -257,19 +268,19 @@ impl F8E4M3 {
     ///
     /// # Example
     /// ```
-    /// # use float8::f8;
+    /// # use float8::F8E4M3;
     ///
-    /// let mut v: Vec<f8> = vec![];
-    /// v.push(f8::ONE);
-    /// v.push(f8::INFINITY);
-    /// v.push(f8::NEG_INFINITY);
-    /// v.push(f8::NAN);
-    /// v.push(f8::MAX_SUBNORMAL);
-    /// v.push(-f8::MAX_SUBNORMAL);
-    /// v.push(f8::ZERO);
-    /// v.push(f8::NEG_ZERO);
-    /// v.push(f8::NEG_ONE);
-    /// v.push(f8::MIN_POSITIVE);
+    /// let mut v: Vec<F8E4M3> = vec![];
+    /// v.push(F8E4M3::ONE);
+    /// v.push(F8E4M3::INFINITY);
+    /// v.push(F8E4M3::NEG_INFINITY);
+    /// v.push(F8E4M3::NAN);
+    /// v.push(F8E4M3::MAX_SUBNORMAL);
+    /// v.push(-F8E4M3::MAX_SUBNORMAL);
+    /// v.push(F8E4M3::ZERO);
+    /// v.push(F8E4M3::NEG_ZERO);
+    /// v.push(F8E4M3::NEG_ONE);
+    /// v.push(F8E4M3::MIN_POSITIVE);
     ///
     /// v.sort_by(|a, b| a.total_cmp(&b));
     ///
@@ -277,16 +288,16 @@ impl F8E4M3 {
     ///     .into_iter()
     ///     .zip(
     ///         [
-    ///             f8::NEG_INFINITY,
-    ///             f8::NEG_ONE,
-    ///             -f8::MAX_SUBNORMAL,
-    ///             f8::NEG_ZERO,
-    ///             f8::ZERO,
-    ///             f8::MAX_SUBNORMAL,
-    ///             f8::MIN_POSITIVE,
-    ///             f8::ONE,
-    ///             f8::INFINITY,
-    ///             f8::NAN
+    ///             F8E4M3::NEG_INFINITY,
+    ///             F8E4M3::NEG_ONE,
+    ///             -F8E4M3::MAX_SUBNORMAL,
+    ///             F8E4M3::NEG_ZERO,
+    ///             F8E4M3::ZERO,
+    ///             F8E4M3::MAX_SUBNORMAL,
+    ///             F8E4M3::MIN_POSITIVE,
+    ///             F8E4M3::ONE,
+    ///             F8E4M3::INFINITY,
+    ///             F8E4M3::NAN
     ///         ]
     ///         .iter()
     ///     )
@@ -312,9 +323,215 @@ impl F8E4M3 {
         self.0 & 0x80u8 != 0
     }
 
-    // Returns `true` if this value is NaN and `false` otherwise.
-    pub const fn is_nan(self) -> bool {
+    /// Returns `true` if this value is NaN and `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use float8::*;
+    ///
+    /// let nan = F8E4M3::NAN;
+    /// let f = F8E4M3::from_f32(7.0_f32);
+    ///
+    /// assert!(nan.is_nan());
+    /// assert!(!f.is_nan());
+    /// ```
+    pub const fn is_nan(&self) -> bool {
         self.0 == 0x7Fu8 || self.0 == 0xFFu8
+    }
+
+    /// Returns `true` if this value is ±∞ and `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use float8::*;
+    ///
+    /// let f = F8E4M3::from_f32(7.0f32);
+    /// let inf = F8E4M3::INFINITY;
+    /// let neg_inf = F8E4M3::NEG_INFINITY;
+    /// let nan = F8E4M3::NAN;
+    ///
+    /// assert!(!f.is_infinite());
+    /// assert!(!nan.is_infinite());
+    ///
+    /// assert!(inf.is_infinite());
+    /// assert!(neg_inf.is_infinite());
+    /// ```
+    pub const fn is_infinite(&self) -> bool {
+        self.0 & 0x7Fu8 == 0x7Eu8
+    }
+
+    /// Returns true if this number is neither infinite nor NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use float8::*;
+    ///
+    /// let f = F8E4M3::from_f32(7.0f32);
+    /// let inf = F8E4M3::INFINITY;
+    /// let neg_inf = F8E4M3::NEG_INFINITY;
+    /// let nan = F8E4M3::NAN;
+    ///
+    /// assert!(f.is_finite());
+    ///
+    /// assert!(!nan.is_finite());
+    /// assert!(!inf.is_finite());
+    /// assert!(!neg_inf.is_finite());
+    /// ```
+    pub const fn is_finite(&self) -> bool {
+        !(self.is_infinite() || self.is_nan())
+    }
+
+    /// Returns `true` if the number is neither zero, infinite, subnormal, or `NaN` and `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use float8::*;
+    ///
+    /// let min = F8E4M3::MIN_POSITIVE;
+    /// let max = F8E4M3::MAX;
+    /// let lower_than_min = F8E4M3::from_f32(1.0e-10_f32);
+    /// let zero = F8E4M3::from_f32(0.0_f32);
+    ///
+    /// assert!(min.is_normal());
+    /// assert!(max.is_normal());
+    ///
+    /// assert!(!zero.is_normal());
+    /// assert!(!F8E4M3::NAN.is_normal());
+    /// assert!(!F8E4M3::INFINITY.is_normal());
+    /// // Values between `0` and `min` are Subnormal.
+    /// assert!(!lower_than_min.is_normal());
+    /// ```
+    pub const fn is_normal(&self) -> bool {
+        #[allow(clippy::unusual_byte_groupings)]
+        let exp = self.0 & 0b0_1111_000;
+        exp != 0 && self.is_finite()
+    }
+
+    /// Returns the minimum of the two numbers.
+    ///
+    /// If one of the arguments is NaN, then the other argument is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use float8::*;
+    /// let x = F8E4M3::from_f32(1.0);
+    /// let y = F8E4M3::from_f32(2.0);
+    ///
+    /// assert_eq!(x.min(y), x);
+    /// ```
+    pub fn min(self, other: Self) -> Self {
+        if other < self && !other.is_nan() {
+            other
+        } else {
+            self
+        }
+    }
+
+    /// Returns the minimum of the two numbers.
+    ///
+    /// If one of the arguments is NaN, then the other argument is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use float8::*;
+    /// let x = F8E4M3::from_f32(1.0);
+    /// let y = F8E4M3::from_f32(2.0);
+    ///
+    /// assert_eq!(x.min(y), x);
+    /// ```
+    pub fn max(self, other: Self) -> Self {
+        if other > self && !other.is_nan() {
+            other
+        } else {
+            self
+        }
+    }
+
+    /// Restrict a value to a certain interval unless it is NaN.
+    ///
+    /// Returns `max` if `self` is greater than `max`, and `min` if `self` is less than `min`.
+    /// Otherwise this returns `self`.
+    ///
+    /// Note that this function returns NaN if the initial value was NaN as well.
+    ///
+    /// # Panics
+    /// Panics if `min > max`, `min` is NaN, or `max` is NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use float8::*;
+    /// assert!(F8E4M3::from_f32(-3.0).clamp(F8E4M3::from_f32(-2.0), F8E4M3::from_f32(1.0)) == F8E4M3::from_f32(-2.0));
+    /// assert!(F8E4M3::from_f32(0.0).clamp(F8E4M3::from_f32(-2.0), F8E4M3::from_f32(1.0)) == F8E4M3::from_f32(0.0));
+    /// assert!(F8E4M3::from_f32(2.0).clamp(F8E4M3::from_f32(-2.0), F8E4M3::from_f32(1.0)) == F8E4M3::from_f32(1.0));
+    /// assert!(F8E4M3::NAN.clamp(F8E4M3::from_f32(-2.0), F8E4M3::from_f32(1.0)).is_nan());
+    /// ```
+    pub fn clamp(self, min: Self, max: Self) -> Self {
+        assert!(min <= max);
+        let mut x = self;
+        if x < min {
+            x = min;
+        }
+        if x > max {
+            x = max;
+        }
+        x
+    }
+
+    /// Returns a number composed of the magnitude of `self` and the sign of `sign`.
+    ///
+    /// Equal to `self` if the sign of `self` and `sign` are the same, otherwise equal to `-self`.
+    /// If `self` is NaN, then NaN with the sign of `sign` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use float8::*;
+    /// let f = F8E4M3::from_f32(3.5);
+    ///
+    /// assert_eq!(f.copysign(F8E4M3::from_f32(0.42)), F8E4M3::from_f32(3.5));
+    /// assert_eq!(f.copysign(F8E4M3::from_f32(-0.42)), F8E4M3::from_f32(-3.5));
+    /// assert_eq!((-f).copysign(F8E4M3::from_f32(0.42)), F8E4M3::from_f32(3.5));
+    /// assert_eq!((-f).copysign(F8E4M3::from_f32(-0.42)), F8E4M3::from_f32(-3.5));
+    ///
+    /// assert!(F8E4M3::NAN.copysign(F8E4M3::from_f32(1.0)).is_nan());
+    /// ```
+    pub const fn copysign(self, sign: Self) -> Self {
+        Self((sign.0 & 0x80u8) | (self.0 & 0x7Fu8))
+    }
+
+    /// Returns a number that represents the sign of `self`.
+    ///
+    /// * `1.0` if the number is positive, `+0.0` or [`INFINITY`][Self::INFINITY]
+    /// * `-1.0` if the number is negative, `-0.0` or [`NEG_INFINITY`][Self::NEG_INFINITY]
+    /// * [`NAN`][Self::NAN] if the number is `NaN`
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use float8::*;
+    ///
+    /// let f = F8E4M3::from_f32(3.5_f32);
+    ///
+    /// assert_eq!(f.signum(), F8E4M3::from_f32(1.0));
+    /// assert_eq!(F8E4M3::NEG_INFINITY.signum(), F8E4M3::from_f32(-1.0));
+    ///
+    /// assert!(F8E4M3::NAN.signum().is_nan());
+    /// ```
+    pub const fn signum(self) -> Self {
+        if self.is_nan() {
+            self
+        } else if self.0 & 0x80u8 != 0 {
+            Self::NEG_ONE
+        } else {
+            Self::ONE
+        }
     }
 }
 
@@ -326,17 +543,17 @@ pub struct F8E5M2(u8);
 impl F8E5M2 {
     const INTERPRETATION: Kind = Kind::E5M2;
 
-    /// Construct a 8-bit floating point value from the raw bits.
+    /// Construct an 8-bit floating point value from the raw bits.
     pub const fn from_bits(bits: u8) -> Self {
         Self(bits)
     }
 
-    /// Construct a 8-bit floating point value from the raw bits.
+    /// Construct an 8-bit floating point value from the raw bits.
     pub const fn to_bits(&self) -> u8 {
         self.0
     }
 
-    /// Convert a [`f64`] type into [`F8E5M2`].
+    /// Convert a [`prim@f64`] type into [`F8E5M2`].
     ///
     /// This operation is lossy.
     ///
@@ -366,7 +583,7 @@ impl F8E5M2 {
         Self::from_f64(x as f64)
     }
 
-    /// Convert this [`F8E5M2`] type into a [`f16`] type.
+    /// Convert this [`F8E5M2`] type into a [`struct@f16`] type.
     ///
     /// This operation may be lossy.
     ///
@@ -377,7 +594,7 @@ impl F8E5M2 {
         f16::from_bits(convert_fp8_to_fp16(self.0, Self::INTERPRETATION))
     }
 
-    /// Convert this [`F8E5M2`] type into a [`f32`] type.
+    /// Convert this [`F8E5M2`] type into a [`prim@f32`] type.
     ///
     /// This operation may be lossy.
     ///
@@ -388,7 +605,7 @@ impl F8E5M2 {
         self.to_f16().to_f32_const()
     }
 
-    /// Convert this [`F8E5M2`] type into a [`f64`] type.
+    /// Convert this [`F8E5M2`] type into a [`prim@f64`] type.
     ///
     /// This operation may be lossy.
     ///
@@ -476,10 +693,215 @@ impl F8E5M2 {
         self.0 & 0x80u8 != 0
     }
 
-    // Returns `true` if this value is NaN and `false` otherwise.
-    // pub const fn is_nan(self) -> bool {
-    pub fn is_nan(self) -> bool {
+    /// Returns `true` if this value is NaN and `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use float8::*;
+    ///
+    /// let nan = F8E5M2::NAN;
+    /// let f = F8E5M2::from_f32(7.0_f32);
+    ///
+    /// assert!(nan.is_nan());
+    /// assert!(!f.is_nan());
+    /// ```
+    pub const fn is_nan(&self) -> bool {
         self.0 == 0x7Eu8 || self.0 == 0xFEu8
+    }
+
+    /// Returns `true` if this value is ±∞ and `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use float8::*;
+    ///
+    /// let f = F8E5M2::from_f32(7.0f32);
+    /// let inf = F8E5M2::INFINITY;
+    /// let neg_inf = F8E5M2::NEG_INFINITY;
+    /// let nan = F8E5M2::NAN;
+    ///
+    /// assert!(!f.is_infinite());
+    /// assert!(!nan.is_infinite());
+    ///
+    /// assert!(inf.is_infinite());
+    /// assert!(neg_inf.is_infinite());
+    /// ```
+    pub const fn is_infinite(&self) -> bool {
+        self.0 & 0x7Fu8 == 0x7Bu8
+    }
+
+    /// Returns true if this number is neither infinite nor NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use float8::*;
+    ///
+    /// let f = F8E5M2::from_f32(7.0f32);
+    /// let inf = F8E5M2::INFINITY;
+    /// let neg_inf = F8E5M2::NEG_INFINITY;
+    /// let nan = F8E5M2::NAN;
+    ///
+    /// assert!(f.is_finite());
+    ///
+    /// assert!(!nan.is_finite());
+    /// assert!(!inf.is_finite());
+    /// assert!(!neg_inf.is_finite());
+    /// ```
+    pub const fn is_finite(&self) -> bool {
+        !(self.is_infinite() || self.is_nan())
+    }
+
+    /// Returns `true` if the number is neither zero, infinite, subnormal, or `NaN` and `false` otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use float8::*;
+    ///
+    /// let min = F8E5M2::MIN_POSITIVE;
+    /// let max = F8E5M2::MAX;
+    /// let lower_than_min = F8E5M2::from_f32(1.0e-10_f32);
+    /// let zero = F8E5M2::from_f32(0.0_f32);
+    ///
+    /// assert!(min.is_normal());
+    /// assert!(max.is_normal());
+    ///
+    /// assert!(!zero.is_normal());
+    /// assert!(!F8E5M2::NAN.is_normal());
+    /// assert!(!F8E5M2::INFINITY.is_normal());
+    /// // Values between `0` and `min` are Subnormal.
+    /// assert!(!lower_than_min.is_normal());
+    /// ```
+    pub const fn is_normal(&self) -> bool {
+        #[allow(clippy::unusual_byte_groupings)]
+        let exp = self.0 & 0b0_11111_00;
+        exp != 0 && self.is_finite()
+    }
+
+    /// Returns the minimum of the two numbers.
+    ///
+    /// If one of the arguments is NaN, then the other argument is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use float8::*;
+    /// let x = F8E5M2::from_f32(1.0);
+    /// let y = F8E5M2::from_f32(2.0);
+    ///
+    /// assert_eq!(x.min(y), x);
+    /// ```
+    pub fn min(self, other: Self) -> Self {
+        if other < self && !other.is_nan() {
+            other
+        } else {
+            self
+        }
+    }
+
+    /// Returns the minimum of the two numbers.
+    ///
+    /// If one of the arguments is NaN, then the other argument is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use float8::*;
+    /// let x = F8E5M2::from_f32(1.0);
+    /// let y = F8E5M2::from_f32(2.0);
+    ///
+    /// assert_eq!(x.min(y), x);
+    /// ```
+    pub fn max(self, other: Self) -> Self {
+        if other > self && !other.is_nan() {
+            other
+        } else {
+            self
+        }
+    }
+
+    /// Restrict a value to a certain interval unless it is NaN.
+    ///
+    /// Returns `max` if `self` is greater than `max`, and `min` if `self` is less than `min`.
+    /// Otherwise this returns `self`.
+    ///
+    /// Note that this function returns NaN if the initial value was NaN as well.
+    ///
+    /// # Panics
+    /// Panics if `min > max`, `min` is NaN, or `max` is NaN.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use float8::*;
+    /// assert!(F8E5M2::from_f32(-3.0).clamp(F8E5M2::from_f32(-2.0), F8E5M2::from_f32(1.0)) == F8E5M2::from_f32(-2.0));
+    /// assert!(F8E5M2::from_f32(0.0).clamp(F8E5M2::from_f32(-2.0), F8E5M2::from_f32(1.0)) == F8E5M2::from_f32(0.0));
+    /// assert!(F8E5M2::from_f32(2.0).clamp(F8E5M2::from_f32(-2.0), F8E5M2::from_f32(1.0)) == F8E5M2::from_f32(1.0));
+    /// assert!(F8E5M2::NAN.clamp(F8E5M2::from_f32(-2.0), F8E5M2::from_f32(1.0)).is_nan());
+    /// ```
+    pub fn clamp(self, min: Self, max: Self) -> Self {
+        assert!(min <= max);
+        let mut x = self;
+        if x < min {
+            x = min;
+        }
+        if x > max {
+            x = max;
+        }
+        x
+    }
+
+    /// Returns a number composed of the magnitude of `self` and the sign of `sign`.
+    ///
+    /// Equal to `self` if the sign of `self` and `sign` are the same, otherwise equal to `-self`.
+    /// If `self` is NaN, then NaN with the sign of `sign` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use float8::*;
+    /// let f = F8E5M2::from_f32(3.5);
+    ///
+    /// assert_eq!(f.copysign(F8E5M2::from_f32(0.42)), F8E5M2::from_f32(3.5));
+    /// assert_eq!(f.copysign(F8E5M2::from_f32(-0.42)), F8E5M2::from_f32(-3.5));
+    /// assert_eq!((-f).copysign(F8E5M2::from_f32(0.42)), F8E5M2::from_f32(3.5));
+    /// assert_eq!((-f).copysign(F8E5M2::from_f32(-0.42)), F8E5M2::from_f32(-3.5));
+    ///
+    /// assert!(F8E5M2::NAN.copysign(F8E5M2::from_f32(1.0)).is_nan());
+    /// ```
+    pub const fn copysign(self, sign: Self) -> Self {
+        Self((sign.0 & 0x80u8) | (self.0 & 0x7Fu8))
+    }
+
+    /// Returns a number that represents the sign of `self`.
+    ///
+    /// * `1.0` if the number is positive, `+0.0` or [`INFINITY`][Self::INFINITY]
+    /// * `-1.0` if the number is negative, `-0.0` or [`NEG_INFINITY`][Self::NEG_INFINITY]
+    /// * [`NAN`][Self::NAN] if the number is `NaN`
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use float8::*;
+    ///
+    /// let f = F8E5M2::from_f32(3.5_f32);
+    ///
+    /// assert_eq!(f.signum(), F8E5M2::from_f32(1.0));
+    /// assert_eq!(F8E5M2::NEG_INFINITY.signum(), F8E5M2::from_f32(-1.0));
+    ///
+    /// assert!(F8E5M2::NAN.signum().is_nan());
+    /// ```
+    pub const fn signum(self) -> Self {
+        if self.is_nan() {
+            self
+        } else if self.0 & 0x80u8 != 0 {
+            Self::NEG_ONE
+        } else {
+            Self::ONE
+        }
     }
 }
 
@@ -796,10 +1218,6 @@ binary!(Mul, mul, F8E5M2, *);
 binary!(Div, div, F8E5M2, /);
 binary!(Rem, rem, F8E5M2, %);
 unary!(Neg, neg, F8E5M2, -);
-
-#[allow(non_camel_case_types)]
-/// An alias for [`F8E4M3`].
-pub type f8 = F8E4M3;
 
 macro_rules! from_t {
     ($t:ident) => {

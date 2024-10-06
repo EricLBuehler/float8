@@ -44,7 +44,7 @@ mod test {
     }
 
     #[test]
-    fn test_f8e4m2_consts() {
+    fn test_f8e5m2_consts() {
         // DIGITS
         let digits = ((F8E5M2::MANTISSA_DIGITS as f32 - 1.0) * 2f32.log10()).floor() as u32;
         assert_eq!(F8E5M2::DIGITS, digits);
@@ -94,7 +94,7 @@ mod test {
     }
 
     #[test]
-    fn test_f8e4m2_consts_from_f32() {
+    fn test_f8e5m2_consts_from_f32() {
         let one = F8E5M2::from_f32(1.0);
         let zero = F8E5M2::from_f32(0.0);
         let neg_zero = F8E5M2::from_f32(-0.0);
@@ -111,6 +111,10 @@ mod test {
         assert_eq!(F8E5M2::NEG_ONE, neg_one);
         assert!(neg_one.is_sign_negative());
         assert_eq!(F8E5M2::INFINITY, inf);
+        assert!(inf.is_infinite());
+        assert!(F8E5M2::INFINITY.is_infinite());
+        assert!(neg_inf.is_infinite());
+        assert!(F8E5M2::NEG_INFINITY.is_infinite());
         assert_eq!(F8E5M2::NEG_INFINITY, neg_inf);
         assert!(nan.is_nan());
         assert!(F8E5M2::NAN.is_nan());
@@ -157,7 +161,7 @@ mod test {
     }
 
     #[test]
-    fn test_f8e4m2_consts_from_f64() {
+    fn test_f8e5m2_consts_from_f64() {
         let one = F8E5M2::from_f64(1.0);
         let zero = F8E5M2::from_f64(0.0);
         let neg_zero = F8E5M2::from_f64(-0.0);
@@ -271,7 +275,7 @@ mod test {
     }
 
     #[test]
-    fn test_f8e4m2_to_f32() {
+    fn test_f8e5m2_to_f32() {
         let f = F8E5M2::from_f32(7.0);
         assert_eq!(f.to_f32(), 7.0f32);
 
@@ -298,7 +302,7 @@ mod test {
     }
 
     #[test]
-    fn test_f8e4m2_to_f64() {
+    fn test_f8e5m2_to_f64() {
         let f = F8E5M2::from_f64(7.0);
         assert_eq!(f.to_f64(), 7.0f64);
 

@@ -112,6 +112,10 @@ mod test {
         assert!(neg_one.is_sign_negative());
         assert_eq!(F8E4M3::INFINITY, inf);
         assert_eq!(F8E4M3::NEG_INFINITY, neg_inf);
+        assert!(inf.is_infinite());
+        assert!(F8E4M3::INFINITY.is_infinite());
+        assert!(neg_inf.is_infinite());
+        assert!(F8E4M3::NEG_INFINITY.is_infinite());
         assert!(nan.is_nan());
         assert!(F8E4M3::NAN.is_nan());
 
