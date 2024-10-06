@@ -86,6 +86,7 @@ use std::{
     mem,
     num::FpCategory,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign},
+    ptr::addr_of,
 };
 
 #[cfg(feature = "bytemuck")]
@@ -1545,3 +1546,17 @@ macro_rules! from_t {
 
 from_t!(F8E4M3);
 from_t!(F8E5M2);
+
+#[cfg(feature = "cuda")]
+unsafe impl cudarc::driver::safe::DeviceRepr for F8E4M3 {
+    fn as_kernel_param(&self) -> *mut std::ffi::c_void {
+        addr_of!(self.0) as *const u8 as *mut _
+    }
+}
+
+#[cfg(feature = "cuda")]
+unsafe impl cudarc::driver::safe::DeviceRepr for F8E5M2 {
+    fn as_kernel_param(&self) -> *mut std::ffi::c_void {
+        addr_of!(self.0) as *const u8 as *mut _
+    }
+}
