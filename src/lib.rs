@@ -1458,6 +1458,26 @@ macro_rules! io {
                 Self::from_f64(x)
             }
         }
+        impl std::fmt::LowerExp for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{:e}", self.to_f32())
+            }
+        }
+        impl std::fmt::LowerHex for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{:x}", self.0)
+            }
+        }
+        impl std::fmt::UpperExp for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{:E}", self.to_f32())
+            }
+        }
+        impl std::fmt::UpperHex for $t {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{:X}", self.0)
+            }
+        }
     };
 }
 
