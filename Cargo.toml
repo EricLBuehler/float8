@@ -5,3 +5,9 @@ edition = "2021"
 
 [dependencies]
 half = "2.4.1"
+
+[features]
+default = ["std"]
+std = []
+num-traits = []
+rand_distr = []
