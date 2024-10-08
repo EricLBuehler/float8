@@ -46,7 +46,7 @@
 //! - **`rand_distr`** — Adds support for the [`rand_distr`] crate by implementing [`Distribution`]
 //!   and other traits for both [`F8E4M3`] and [`F8E5M2`].
 //!
-//! - **`rkyv`** -- Enable zero-copy deserializtion with [`rkyv`] crate.
+//! - **`rkyv`** -- Enable zero-copy deserialization with [`rkyv`] crate.
 //!
 //! [`alloc`]: https://doc.rust-lang.org/alloc/
 //! [`std`]: https://doc.rust-lang.org/std/
@@ -57,7 +57,7 @@
 //! [`num-traits`]: https://crates.io/crates/num-traits
 //! [`zerocopy`]: https://crates.io/crates/zerocopy
 //! [`rand_distr`]: https://crates.io/crates/rand_distr
-//! [`rkyv`]: (https://crates.io/crates/rkyv)
+//! [`rkyv`]: https://crates.io/crates/rkyv
 //! [`FromBytes`]: https://docs.rs/zerocopy/latest/zerocopy/trait.FromBytes.html
 //! [`Distribution`]: https://docs.rs/rand/latest/rand/distributions/trait.Distribution.html
 //! [`AsBytes`]: https://docs.rs/zerocopy/0.6.6/zerocopy/trait.AsBytes.html
@@ -72,7 +72,6 @@
 //! [`FromPrimitive`]: https://docs.rs/num-traits/latest/num_traits/cast/trait.FromPrimitive.html
 //! [`Deserialize`]: https://docs.rs/serde/latest/serde/trait.Deserialize.html
 //! [`Serialize`]: https://docs.rs/serde/latest/serde/trait.Serialize.html
-//!
 
 #[cfg(feature = "num-traits")]
 mod num_traits;
