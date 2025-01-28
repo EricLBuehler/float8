@@ -1,6 +1,6 @@
 [package]
 name = "float8"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 description = "8-bit floating point types for Rust"
 homepage = "https://github.com/EricLBuehler/float8"
