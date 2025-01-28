@@ -24,7 +24,7 @@ zerocopy = { version = "0.6.0", default-features = false, optional = true }
 rand = { version = "0.8.5", default-features = false, features = ["std", "std_rng"], optional = true }
 rand_distr = { version = "0.4.3", default-features = false, optional = true }
 rkyv = { version = "0.7", optional = true }
-cudarc = { version = "0.12.1", features = ["std", "cublas", "cublaslt", "curand", "driver", "nvrtc", "f16", "cuda-version-from-build-system", "dynamic-linking"], default-features=false, optional = true }
+cudarc = { version = "0.13.3", features = ["std", "cublas", "cublaslt", "curand", "driver", "nvrtc", "f16", "cuda-version-from-build-system", "dynamic-linking"], default-features=false, optional = true }
 mistralrs_cudarc_fork = { version = "0.12.1", features = ["std", "cublas", "cublaslt", "curand", "driver", "nvrtc", "f16", "cuda-version-from-build-system", "dynamic-linking"], default-features=false, optional = true }
 
 [features]
