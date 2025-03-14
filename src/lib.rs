@@ -82,7 +82,6 @@ use core::f64;
 use half::f16;
 use std::{
     cmp::Ordering,
-    mem,
     num::FpCategory,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign},
 };
@@ -111,7 +110,7 @@ enum SaturationType {
 
 // https://gitlab.com/nvidia/headers/cuda-individual/cudart/-/blob/main/cuda_fp8.hpp?ref_type=heads#L97
 const fn convert_to_fp8(x: f64, saturate: SaturationType, fp8_interpretation: Kind) -> u8 {
-    let xbits: u64 = unsafe { mem::transmute::<f64, u64>(x) };
+    let xbits: u64 = x.to_bits();
 
     let (
         fp8_maxnorm,
