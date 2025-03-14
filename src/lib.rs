@@ -1585,7 +1585,6 @@ unsafe impl cudarc::driver::safe::DeviceRepr for F8E5M2 {
 #[cfg(feature = "cuda")]
 unsafe impl cudarc::driver::ValidAsZeroBits for F8E5M2 {}
 
-
 #[cfg(feature = "mistralrs_cudarc_fork")]
 unsafe impl mistralrs_cudarc_fork::driver::DeviceRepr for F8E4M3 {
     fn as_kernel_param(&self) -> *mut std::ffi::c_void {
