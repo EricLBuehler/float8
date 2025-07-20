@@ -1565,22 +1565,12 @@ from_t!(F8E4M3);
 from_t!(F8E5M2);
 
 #[cfg(feature = "cuda")]
-unsafe impl cudarc::driver::DeviceRepr for F8E4M3 {
-    fn as_kernel_param(&self) -> *mut std::ffi::c_void {
-        use std::ptr::addr_of;
-        addr_of!(self.0) as *const u8 as *mut _
-    }
-}
+unsafe impl cudarc::driver::DeviceRepr for F8E4M3 {}
 #[cfg(feature = "cuda")]
 unsafe impl cudarc::driver::ValidAsZeroBits for F8E4M3 {}
 
 #[cfg(feature = "cuda")]
-unsafe impl cudarc::driver::safe::DeviceRepr for F8E5M2 {
-    fn as_kernel_param(&self) -> *mut std::ffi::c_void {
-        use std::ptr::addr_of;
-        addr_of!(self.0) as *const u8 as *mut _
-    }
-}
+unsafe impl cudarc::driver::safe::DeviceRepr for F8E5M2 {}
 #[cfg(feature = "cuda")]
 unsafe impl cudarc::driver::ValidAsZeroBits for F8E5M2 {}
 
