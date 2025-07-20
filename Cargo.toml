@@ -25,7 +25,7 @@ rand = { version = "0.9.0", default-features = false, features = ["std", "std_rn
 rand_distr = { version = "0.5.0", default-features = false, optional = true }
 rkyv = { version = "0.7", optional = true }
 mistralrs_cudarc_fork = { version = "0.12.1", features = ["std", "cublas", "cublaslt", "curand", "driver", "nvrtc", "f16", "cuda-version-from-build-system", "dynamic-linking"], default-features=false, optional = true }
-cudarc = { version = "0.16.3", features = ["std", "cublas", "cublaslt", "curand", "driver", "nvrtc", "f16", "cuda-version-from-build-system", "dynamic-linking"], default-features=false }
+cudarc = { version = "0.16.3", features = ["std", "cublas", "cublaslt", "curand", "driver", "nvrtc", "f16", "cuda-version-from-build-system", "dynamic-linking"], default-features=false, optional = true }
 
 [features]
 default = ["std"]
