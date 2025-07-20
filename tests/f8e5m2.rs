@@ -406,14 +406,14 @@ mod test {
     fn formatting() {
         let f = F8E5M2::from_f32(0.1152344);
 
-        assert_eq!(format!("{:.3}", f), "0.109");
-        assert_eq!(format!("{:.4}", f), "0.1094");
-        assert_eq!(format!("{:+.4}", f), "+0.1094");
-        assert_eq!(format!("{:>+10.4}", f), "   +0.1094");
+        assert_eq!(format!("{f:.3}"), "0.109");
+        assert_eq!(format!("{f:.4}"), "0.1094");
+        assert_eq!(format!("{f:+.4}"), "+0.1094");
+        assert_eq!(format!("{f:>+10.4}"), "   +0.1094");
 
-        assert_eq!(format!("{:.3?}", f), "0.109");
-        assert_eq!(format!("{:.4?}", f), "0.1094");
-        assert_eq!(format!("{:+.4?}", f), "+0.1094");
-        assert_eq!(format!("{:>+10.4?}", f), "   +0.1094");
+        assert_eq!(format!("{f:.3?}"), "0.109");
+        assert_eq!(format!("{f:.4?}"), "0.1094");
+        assert_eq!(format!("{f:+.4?}"), "+0.1094");
+        assert_eq!(format!("{f:>+10.4?}"), "   +0.1094");
     }
 }
