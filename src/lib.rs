@@ -111,6 +111,7 @@ enum SaturationType {
 // https://gitlab.com/nvidia/headers/cuda-individual/cudart/-/blob/main/cuda_fp8.hpp?ref_type=heads#L97
 const fn convert_to_fp8(x: f64, saturate: SaturationType, fp8_interpretation: Kind) -> u8 {
     // TODO: use x.to_bits() with MSRV 1.83
+    #[allow(unnecessary_transmutes)]
     let xbits: u64 = unsafe { std::mem::transmute::<f64, u64>(x) };
 
     let (
