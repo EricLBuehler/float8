@@ -11,7 +11,7 @@ categories = ["science"]
 license = "MIT"
 
 [dependencies]
-half = "2.4.1"
+half = { version = "2.4.1", default-features = false }
 bytemuck = { version = "1.4.1", default-features = false, features = [
     "derive",
 ], optional = true }
@@ -29,7 +29,7 @@ cudarc = { version = "0.17.2", features = ["std", "cublas", "cublaslt", "curand"
 
 [features]
 default = ["std"]
-std = []
+std = ["half/std"]
 cuda = ["dep:cudarc"]
 all = ["std", "num-traits", "rand_distr", "bytemuck", "zerocopy", "rkyv", "serde", "cuda"]
 num-traits = ["dep:num-traits"]

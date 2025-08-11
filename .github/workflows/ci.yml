@@ -25,10 +25,15 @@ jobs:
         with:
           profile: minimal
           toolchain: ${{ matrix.rust }}
+          target: riscv64gc-unknown-none-elf
           override: true
       - uses: actions-rs/cargo@v1
         with:
           command: check
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --no-default-features --target=riscv64gc-unknown-none-elf
 
   test:
     name: Test Suite
