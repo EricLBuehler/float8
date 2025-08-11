@@ -73,18 +73,23 @@
 //! [`Deserialize`]: https://docs.rs/serde/latest/serde/trait.Deserialize.html
 //! [`Serialize`]: https://docs.rs/serde/latest/serde/trait.Serialize.html
 
+#![no_std]
+
 #[cfg(feature = "num-traits")]
 mod num_traits;
 #[cfg(feature = "rand_distr")]
 mod rand_distr;
 
-use core::f64;
-use half::f16;
-use std::{
+use core::{
     cmp::Ordering,
-    num::FpCategory,
+    f64,
+    fmt::{self, Debug, Display, LowerExp, LowerHex, UpperExp, UpperHex},
+    mem,
+    num::{FpCategory, ParseFloatError},
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign},
+    str::FromStr,
 };
+use half::f16;
 
 #[cfg(feature = "bytemuck")]
 use bytemuck::{Pod, Zeroable};
@@ -112,7 +117,7 @@ enum SaturationType {
 const fn convert_to_fp8(x: f64, saturate: SaturationType, fp8_interpretation: Kind) -> u8 {
     // TODO: use x.to_bits() with MSRV 1.83
     #[allow(unknown_lints, unnecessary_transmutes)]
-    let xbits: u64 = unsafe { std::mem::transmute::<f64, u64>(x) };
+    let xbits: u64 = unsafe { mem::transmute::<f64, u64>(x) };
 
     let (
         fp8_maxnorm,
@@ -670,7 +675,7 @@ impl<'de> Deserialize<'de> for F8E4M3 {
 impl<'de> serde::de::Visitor<'de> for VisitorF8E4M3 {
     type Value = F8E4M3;
 
-    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(formatter, "tuple struct f8e4m3")
     }
 
@@ -1131,7 +1136,7 @@ impl<'de> Deserialize<'de> for F8E5M2 {
 impl<'de> serde::de::Visitor<'de> for VisitorF8E5M2 {
     type Value = F8E5M2;
 
-    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         write!(formatter, "tuple struct f8e5m2")
     }
 
@@ -1426,19 +1431,19 @@ impl F8E5M2 {
 
 macro_rules! io {
     ($t:ident) => {
-        impl std::fmt::Display for $t {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                std::fmt::Display::fmt(&self.to_f32(), f)
+        impl Display for $t {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                Display::fmt(&self.to_f32(), f)
             }
         }
-        impl std::fmt::Debug for $t {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                std::fmt::Debug::fmt(&self.to_f32(), f)
+        impl Debug for $t {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                Debug::fmt(&self.to_f32(), f)
             }
         }
-        impl std::str::FromStr for $t {
-            type Err = std::num::ParseFloatError;
-            fn from_str(src: &str) -> Result<$t, std::num::ParseFloatError> {
+        impl FromStr for $t {
+            type Err = ParseFloatError;
+            fn from_str(src: &str) -> Result<$t, ParseFloatError> {
                 f32::from_str(src).map($t::from_f32)
             }
         }
@@ -1457,23 +1462,23 @@ macro_rules! io {
                 Self::from_f64(x)
             }
         }
-        impl std::fmt::LowerExp for $t {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        impl LowerExp for $t {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "{:e}", self.to_f32())
             }
         }
-        impl std::fmt::LowerHex for $t {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        impl LowerHex for $t {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "{:x}", self.0)
             }
         }
-        impl std::fmt::UpperExp for $t {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        impl UpperExp for $t {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "{:E}", self.to_f32())
             }
         }
-        impl std::fmt::UpperHex for $t {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        impl UpperHex for $t {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(f, "{:X}", self.0)
             }
         }
