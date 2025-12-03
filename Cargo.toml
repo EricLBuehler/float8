@@ -1,6 +1,6 @@
 [package]
 name = "float8"
-version = "0.4.1"
+version = "0.5.0"
 rust-version = "1.70"
 edition = "2021"
 description = "8-bit floating point types for Rust"
@@ -25,7 +25,7 @@ zerocopy = { version = "0.6.0", default-features = false, optional = true }
 rand = { version = "0.9.0", default-features = false, features = ["std", "std_rng", "thread_rng"], optional = true }
 rand_distr = { version = "0.5.0", default-features = false, optional = true }
 rkyv = { version = "0.7", optional = true }
-cudarc = { version = "0.17.2", features = ["std", "cublas", "cublaslt", "curand", "driver", "nvrtc", "f16", "cuda-version-from-build-system", "dynamic-linking"], default-features=false, optional = true }
+cudarc = { version = "0.18.1", features = ["std", "cublas", "cublaslt", "curand", "driver", "nvrtc", "f16", "cuda-version-from-build-system", "dynamic-linking"], default-features=false, optional = true }
 
 [features]
 default = ["std"]
