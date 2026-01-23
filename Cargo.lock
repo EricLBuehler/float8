@@ -111,9 +111,9 @@ checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 
 [[package]]
 name = "cudarc"
-version = "0.18.1"
+version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef0cfc5e22a6b6f7d04ee45b0151232ca236ede8ca3534210fd4072bdead0d60"
+checksum = "4d5be1e9776a20360ca270df637b391c85d48ea57508140f30a4e8f6da91884a"
 dependencies = [
  "half",
  "libloading",
@@ -121,7 +121,7 @@ dependencies = [
 
 [[package]]
 name = "float8"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "bytemuck",
  "cudarc",
