@@ -1,6 +1,6 @@
 [package]
 name = "float8"
-version = "0.6.0"
+version = "0.6.1"
 rust-version = "1.70"
 edition = "2021"
 description = "8-bit floating point types for Rust"
@@ -38,13 +38,14 @@ cudarc = { version = "0.19.0", features = [
     "nvrtc",
     "f16",
     "cuda-version-from-build-system",
-    "dynamic-linking",
 ], default-features = false, optional = true }
 
 [features]
 default = ["std"]
 std = ["half/std"]
-cuda = ["dep:cudarc"]
+cuda = ["cuda-dynamic"]
+cuda-dynamic = ["dep:cudarc", "cudarc?/dynamic-linking"]
+cuda-static = ["dep:cudarc", "cudarc?/static-linking"]
 all = [
     "std",
     "num-traits",

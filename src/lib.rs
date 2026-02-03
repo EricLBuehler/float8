@@ -1571,12 +1571,12 @@ macro_rules! from_t {
 from_t!(F8E4M3);
 from_t!(F8E5M2);
 
-#[cfg(feature = "cuda")]
+#[cfg(any(feature = "cuda-dynamic", feature = "cuda-static"))]
 unsafe impl cudarc::driver::DeviceRepr for F8E4M3 {}
-#[cfg(feature = "cuda")]
+#[cfg(any(feature = "cuda-dynamic", feature = "cuda-static"))]
 unsafe impl cudarc::driver::ValidAsZeroBits for F8E4M3 {}
 
-#[cfg(feature = "cuda")]
+#[cfg(any(feature = "cuda-dynamic", feature = "cuda-static"))]
 unsafe impl cudarc::driver::safe::DeviceRepr for F8E5M2 {}
-#[cfg(feature = "cuda")]
+#[cfg(any(feature = "cuda-dynamic", feature = "cuda-static"))]
 unsafe impl cudarc::driver::ValidAsZeroBits for F8E5M2 {}
