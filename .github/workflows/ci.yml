@@ -1,11 +1,11 @@
-on: 
+on:
   schedule:
       - cron: '0 0 * * 1'
   push:
-    branches: 
+    branches:
       - master
   pull_request:
-    branches: 
+    branches:
       - master
   workflow_dispatch:
 
@@ -117,7 +117,7 @@ jobs:
         uses: crate-ci/typos@master
         with:
           config: .typos.toml
-  
+
   # run `mlc` (`cargo install mlc`)
   # markdown-link-check:
   #   runs-on: ubuntu-latest
