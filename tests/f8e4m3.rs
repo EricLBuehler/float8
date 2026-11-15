@@ -416,4 +416,46 @@ mod test {
         assert_eq!(format!("{f:+.4?}"), "+0.1172");
         assert_eq!(format!("{f:>+10.4?}"), "   +0.1172");
     }
+
+    #[test]
+    fn test_classify_min_max_and_mantissa_digits() {
+        use core::num::FpCategory;
+
+        assert_eq!(F8E4M3::MANTISSA_DIGITS, 4);
+        assert_eq!(
+            F8E4M3::from_f32(2f32.powi(1 - F8E4M3::MANTISSA_DIGITS as i32)),
+            F8E4M3::EPSILON
+        );
+
+        assert_eq!(F8E4M3::ZERO.classify(), FpCategory::Zero);
+        assert_eq!(F8E4M3::NEG_ZERO.classify(), FpCategory::Zero);
+        assert_eq!(
+            F8E4M3::MIN_POSITIVE_SUBNORMAL.classify(),
+            FpCategory::Subnormal
+        );
+        assert_eq!(F8E4M3::MAX_SUBNORMAL.classify(), FpCategory::Subnormal);
+        assert_eq!(F8E4M3::MIN_POSITIVE.classify(), FpCategory::Normal);
+        assert_eq!(F8E4M3::ONE.classify(), FpCategory::Normal);
+        assert_eq!(F8E4M3::MAX.classify(), FpCategory::Normal);
+        assert_eq!(F8E4M3::INFINITY.classify(), FpCategory::Infinite);
+        assert_eq!(F8E4M3::NEG_INFINITY.classify(), FpCategory::Infinite);
+        assert_eq!(F8E4M3::NAN.classify(), FpCategory::Nan);
+        assert_eq!((-F8E4M3::NAN).classify(), FpCategory::Nan);
+
+        assert_eq!(F8E4M3::NAN.min(F8E4M3::ZERO), F8E4M3::ZERO);
+        assert_eq!(F8E4M3::ZERO.min(F8E4M3::NAN), F8E4M3::ZERO);
+        assert_eq!(F8E4M3::NAN.max(F8E4M3::ZERO), F8E4M3::ZERO);
+        assert_eq!(F8E4M3::ZERO.max(F8E4M3::NAN), F8E4M3::ZERO);
+        assert!(F8E4M3::NAN.min(F8E4M3::NAN).is_nan());
+        assert!(F8E4M3::NAN.max(F8E4M3::NAN).is_nan());
+
+        #[cfg(feature = "num-traits")]
+        {
+            use num_traits::float::{Float, FloatCore};
+            assert_eq!(FloatCore::classify(F8E4M3::ZERO), FpCategory::Zero);
+            assert_eq!(FloatCore::classify(F8E4M3::NAN), FpCategory::Nan);
+            assert_eq!(Float::min(F8E4M3::NAN, F8E4M3::ZERO), F8E4M3::ZERO);
+            assert_eq!(Float::max(F8E4M3::NAN, F8E4M3::ZERO), F8E4M3::ZERO);
+        }
+    }
 }

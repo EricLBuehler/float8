@@ -517,14 +517,14 @@ impl F8E4M3 {
     /// assert_eq!(x.min(y), x);
     /// ```
     pub fn min(self, other: Self) -> Self {
-        if other < self && !other.is_nan() {
+        if self.is_nan() || other < self {
             other
         } else {
             self
         }
     }
 
-    /// Returns the minimum of the two numbers.
+    /// Returns the maximum of the two numbers.
     ///
     /// If one of the arguments is NaN, then the other argument is returned.
     ///
@@ -535,10 +535,10 @@ impl F8E4M3 {
     /// let x = F8E4M3::from_f32(1.0);
     /// let y = F8E4M3::from_f32(2.0);
     ///
-    /// assert_eq!(x.min(y), x);
+    /// assert_eq!(x.max(y), y);
     /// ```
     pub fn max(self, other: Self) -> Self {
-        if other > self && !other.is_nan() {
+        if self.is_nan() || other > self {
             other
         } else {
             self
@@ -644,16 +644,16 @@ impl F8E4M3 {
     /// assert_eq!(inf.classify(), FpCategory::Infinite);
     /// ```
     pub const fn classify(&self) -> FpCategory {
-        if self.is_infinite() {
-            FpCategory::Infinite
-        } else if !self.is_normal() {
-            FpCategory::Subnormal
-        } else if self.is_nan() {
+        if self.is_nan() {
             FpCategory::Nan
+        } else if self.is_infinite() {
+            FpCategory::Infinite
         } else if self.0 & 0x7Fu8 == 0 {
             FpCategory::Zero
-        } else {
+        } else if self.is_normal() {
             FpCategory::Normal
+        } else {
+            FpCategory::Subnormal
         }
     }
 }
@@ -978,14 +978,14 @@ impl F8E5M2 {
     /// assert_eq!(x.min(y), x);
     /// ```
     pub fn min(self, other: Self) -> Self {
-        if other < self && !other.is_nan() {
+        if self.is_nan() || other < self {
             other
         } else {
             self
         }
     }
 
-    /// Returns the minimum of the two numbers.
+    /// Returns the maximum of the two numbers.
     ///
     /// If one of the arguments is NaN, then the other argument is returned.
     ///
@@ -996,10 +996,10 @@ impl F8E5M2 {
     /// let x = F8E5M2::from_f32(1.0);
     /// let y = F8E5M2::from_f32(2.0);
     ///
-    /// assert_eq!(x.min(y), x);
+    /// assert_eq!(x.max(y), y);
     /// ```
     pub fn max(self, other: Self) -> Self {
-        if other > self && !other.is_nan() {
+        if self.is_nan() || other > self {
             other
         } else {
             self
@@ -1105,16 +1105,16 @@ impl F8E5M2 {
     /// assert_eq!(inf.classify(), FpCategory::Infinite);
     /// ```
     pub const fn classify(&self) -> FpCategory {
-        if self.is_infinite() {
-            FpCategory::Infinite
-        } else if !self.is_normal() {
-            FpCategory::Subnormal
-        } else if self.is_nan() {
+        if self.is_nan() {
             FpCategory::Nan
+        } else if self.is_infinite() {
+            FpCategory::Infinite
         } else if self.0 & 0x7Fu8 == 0 {
             FpCategory::Zero
-        } else {
+        } else if self.is_normal() {
             FpCategory::Normal
+        } else {
+            FpCategory::Subnormal
         }
     }
 }
@@ -1348,7 +1348,7 @@ constants!(F8E5M2);
 #[allow(clippy::unusual_byte_groupings)]
 impl F8E4M3 {
     /// Number of mantissa digits
-    pub const MANTISSA_DIGITS: u32 = 3;
+    pub const MANTISSA_DIGITS: u32 = 4;
     /// Maximum possible value
     pub const MAX: Self = Self::from_bits(0x7E - 1);
     /// Minimum possible value
@@ -1390,7 +1390,7 @@ impl F8E4M3 {
 #[allow(clippy::unusual_byte_groupings)]
 impl F8E5M2 {
     /// Number of mantissa digits
-    pub const MANTISSA_DIGITS: u32 = 2;
+    pub const MANTISSA_DIGITS: u32 = 3;
     /// Maximum possible value
     pub const MAX: Self = Self::from_bits(0x7B - 1);
     /// Minimum possible value
