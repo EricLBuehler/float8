@@ -416,4 +416,46 @@ mod test {
         assert_eq!(format!("{f:+.4?}"), "+0.1094");
         assert_eq!(format!("{f:>+10.4?}"), "   +0.1094");
     }
+
+    #[test]
+    fn test_classify_min_max_and_mantissa_digits() {
+        use core::num::FpCategory;
+
+        assert_eq!(F8E5M2::MANTISSA_DIGITS, 3);
+        assert_eq!(
+            F8E5M2::from_f32(2f32.powi(1 - F8E5M2::MANTISSA_DIGITS as i32)),
+            F8E5M2::EPSILON
+        );
+
+        assert_eq!(F8E5M2::ZERO.classify(), FpCategory::Zero);
+        assert_eq!(F8E5M2::NEG_ZERO.classify(), FpCategory::Zero);
+        assert_eq!(
+            F8E5M2::MIN_POSITIVE_SUBNORMAL.classify(),
+            FpCategory::Subnormal
+        );
+        assert_eq!(F8E5M2::MAX_SUBNORMAL.classify(), FpCategory::Subnormal);
+        assert_eq!(F8E5M2::MIN_POSITIVE.classify(), FpCategory::Normal);
+        assert_eq!(F8E5M2::ONE.classify(), FpCategory::Normal);
+        assert_eq!(F8E5M2::MAX.classify(), FpCategory::Normal);
+        assert_eq!(F8E5M2::INFINITY.classify(), FpCategory::Infinite);
+        assert_eq!(F8E5M2::NEG_INFINITY.classify(), FpCategory::Infinite);
+        assert_eq!(F8E5M2::NAN.classify(), FpCategory::Nan);
+        assert_eq!(F8E5M2::from_bits(0xFE).classify(), FpCategory::Nan);
+
+        assert_eq!(F8E5M2::NAN.min(F8E5M2::ZERO), F8E5M2::ZERO);
+        assert_eq!(F8E5M2::ZERO.min(F8E5M2::NAN), F8E5M2::ZERO);
+        assert_eq!(F8E5M2::NAN.max(F8E5M2::ZERO), F8E5M2::ZERO);
+        assert_eq!(F8E5M2::ZERO.max(F8E5M2::NAN), F8E5M2::ZERO);
+        assert!(F8E5M2::NAN.min(F8E5M2::NAN).is_nan());
+        assert!(F8E5M2::NAN.max(F8E5M2::NAN).is_nan());
+
+        #[cfg(feature = "num-traits")]
+        {
+            use num_traits::float::{Float, FloatCore};
+            assert_eq!(FloatCore::classify(F8E5M2::ZERO), FpCategory::Zero);
+            assert_eq!(FloatCore::classify(F8E5M2::NAN), FpCategory::Nan);
+            assert_eq!(Float::min(F8E5M2::NAN, F8E5M2::ZERO), F8E5M2::ZERO);
+            assert_eq!(Float::max(F8E5M2::NAN, F8E5M2::ZERO), F8E5M2::ZERO);
+        }
+    }
 }
