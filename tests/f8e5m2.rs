@@ -416,4 +416,56 @@ mod test {
         assert_eq!(format!("{f:+.4?}"), "+0.1094");
         assert_eq!(format!("{f:>+10.4?}"), "   +0.1094");
     }
+
+    #[test]
+    fn test_f8e5m2_ieee_special_encodings() {
+        assert_eq!(F8E5M2::MAX.to_bits(), 0x7B);
+        assert_eq!(F8E5M2::MAX.to_f32(), 57344.0);
+        assert!(F8E5M2::MAX.is_finite());
+        assert!(F8E5M2::MAX.is_normal());
+        assert!(!F8E5M2::MAX.is_infinite());
+
+        assert_eq!(F8E5M2::MIN.to_bits(), 0xFB);
+        assert_eq!(F8E5M2::MIN.to_f32(), -57344.0);
+        assert!(F8E5M2::MIN.is_finite());
+        assert!(F8E5M2::MIN.is_normal());
+        assert!(!F8E5M2::MIN.is_infinite());
+
+        assert_eq!(F8E5M2::INFINITY.to_bits(), 0x7C);
+        assert_eq!(F8E5M2::INFINITY.to_f32(), f32::INFINITY);
+        assert!(F8E5M2::INFINITY.is_infinite());
+        assert!(!F8E5M2::INFINITY.is_finite());
+
+        assert_eq!(F8E5M2::NEG_INFINITY.to_bits(), 0xFC);
+        assert_eq!(F8E5M2::NEG_INFINITY.to_f32(), f32::NEG_INFINITY);
+        assert!(F8E5M2::NEG_INFINITY.is_infinite());
+        assert!(!F8E5M2::NEG_INFINITY.is_finite());
+
+        assert_eq!(F8E5M2::from_f32(57344.0), F8E5M2::MAX);
+        assert_eq!(F8E5M2::from_f32(65536.0), F8E5M2::INFINITY);
+        assert_eq!(F8E5M2::from_f32(-65536.0), F8E5M2::NEG_INFINITY);
+
+        for bits in [0x7Du8, 0x7E, 0x7F, 0xFD, 0xFE, 0xFF] {
+            let v = F8E5M2::from_bits(bits);
+            assert!(v.is_nan(), "expected NaN for bits 0x{bits:02x}");
+            assert!(!v.is_finite());
+            assert!(!v.is_normal());
+            assert!(v != v);
+            assert_eq!(v.partial_cmp(&F8E5M2::ZERO), None);
+        }
+
+        assert!((F8E5M2::NAN + F8E5M2::ZERO).is_nan());
+
+        #[cfg(feature = "std")]
+        {
+            assert_eq!(
+                F8E5M2::INFINITY.to_string().parse::<F8E5M2>().unwrap(),
+                F8E5M2::INFINITY
+            );
+            assert_eq!(
+                F8E5M2::NEG_INFINITY.to_string().parse::<F8E5M2>().unwrap(),
+                F8E5M2::NEG_INFINITY
+            );
+        }
+    }
 }

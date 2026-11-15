@@ -104,7 +104,6 @@ enum Kind {
     E5M2,
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Copy, PartialEq, Default)]
 /// Saturation type. If `NoSat`, allow NaN and inf.
 enum SaturationType {
@@ -748,7 +747,7 @@ impl F8E5M2 {
     pub const fn from_f64(x: f64) -> Self {
         Self(convert_to_fp8(
             x,
-            SaturationType::SatFinite,
+            SaturationType::NoSat,
             Self::INTERPRETATION,
         ))
     }
@@ -890,7 +889,7 @@ impl F8E5M2 {
     /// assert!(!f.is_nan());
     /// ```
     pub const fn is_nan(&self) -> bool {
-        self.0 == 0x7Eu8 || self.0 == 0xFEu8
+        (self.0 & 0x7Fu8) > 0x7Cu8
     }
 
     /// Returns `true` if this value is ±∞ and `false` otherwise.
@@ -912,7 +911,7 @@ impl F8E5M2 {
     /// assert!(neg_inf.is_infinite());
     /// ```
     pub const fn is_infinite(&self) -> bool {
-        self.0 & 0x7Fu8 == 0x7Bu8
+        (self.0 & 0x7Fu8) == 0x7Cu8
     }
 
     /// Returns true if this number is neither infinite nor NaN.
@@ -1392,13 +1391,13 @@ impl F8E5M2 {
     /// Number of mantissa digits
     pub const MANTISSA_DIGITS: u32 = 2;
     /// Maximum possible value
-    pub const MAX: Self = Self::from_bits(0x7B - 1);
+    pub const MAX: Self = Self::from_bits(0x7C - 1);
     /// Minimum possible value
-    pub const MIN: Self = Self::from_bits(0xFB - 1);
+    pub const MIN: Self = Self::from_bits(0xFC - 1);
     /// Positive infinity ∞
-    pub const INFINITY: Self = Self::from_bits(0x7B);
+    pub const INFINITY: Self = Self::from_bits(0x7C);
     /// Negative infinity -∞
-    pub const NEG_INFINITY: Self = Self::from_bits(0xFB);
+    pub const NEG_INFINITY: Self = Self::from_bits(0xFC);
     /// Smallest possible normal value
     pub const MIN_POSITIVE: Self = Self::from_bits(0b0_00001_00);
     /// Smallest possible subnormal value
